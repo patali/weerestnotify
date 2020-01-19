@@ -129,7 +129,10 @@ def http_request_callback(data, url, status, response, err):
 def encrypt(data):
     key = w.config_get_plugin('encryption_key')
     fernet = Fernet(key)
-    encrypted_data = fernet.encrypt(data)
+    clean_data = data
+    if type(clean_data) != 'str':
+        clean_data = str(data)
+    encrypted_data = fernet.encrypt(clean_data)
     return base64.b64encode(encrypted_data)
 
 def send_push(title, message):
