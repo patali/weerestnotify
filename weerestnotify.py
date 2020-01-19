@@ -23,11 +23,13 @@ help_text = '''
     test                  Sends "Hello world" message to the end point
 
 [settings]: (prefix with plugins.var.python.weerestnotify.<setting>)
+    api_key               API Key used for signature verification (required)
     encryption_key        Shared key used for encryption of the notification messages (required)
     end_point_url         Endpoint where the message has to be sent to (required)
 '''
 
 configs = {
+    'api_key': '_required',
     'encryption_key': '_required',
     'end_point_url': '_required',
 }
@@ -78,7 +80,6 @@ def get_buf_name(bufferp):
     short_name = w.buffer_get_string(bufferp, 'short_name')
     name = w.buffer_get_string(bufferp, 'name')
     return (short_name or name).decode('utf-8')
-
 
 def is_ignored(bufferp):
     buf_name = get_buf_name(bufferp)
@@ -142,6 +143,7 @@ def send_push(title, message):
 
     # Send the message to endpoint
     postfields = {
+        'signature': encrypt(w.config_get_plugin('api_key')),
         'title': title_enc,
         'text': text_enc
     }
