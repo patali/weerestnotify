@@ -8,6 +8,8 @@ import hashlib
 import base64
 from urllib import urlencode
 
+from cryptography.fernet import Fernet
+import base64
 
 SCRIPT_NAME = 'weerestnotify'
 SCRIPT_AUTHOR = 'patali'
@@ -124,10 +126,21 @@ def http_request_callback(data, url, status, response, err):
     return w.WEECHAT_RC_OK
 
 
+def encrypt(data):
+    key = w.config_get_plugin('encryption_key')
+    fernet = Fernet(key)
+    encrypted_data = fernet.encrypt(data)
+    return base64.b64encode(encrypted_data)
+
 def send_push(title, message):
+    # encrypt the messages
+    title_enc = encrypt(title)
+    text_enc = encrypt(message)
+
+    # Send the message to endpoint
     postfields = {
-        'title': title,
-        'text': message
+        'title': title_enc,
+        'text': text_enc
     }
 
     w.hook_process_hashtable(
@@ -142,6 +155,7 @@ def send_push(title, message):
         'http_request_callback',
         ''
     )
+    w.prnt('', '[weerestnotify] notification sent')
 
 def main():
     register()
