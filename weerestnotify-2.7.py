@@ -6,7 +6,7 @@ import weechat as w
 import hmac
 import hashlib
 import base64
-from urllib.parse import urlencode
+from urllib import urlencode
 
 from cryptography.fernet import Fernet
 import base64
@@ -79,7 +79,7 @@ def handle_argument(data, buffer, args):
 def get_buf_name(bufferp):
     short_name = w.buffer_get_string(bufferp, 'short_name')
     name = w.buffer_get_string(bufferp, 'name')
-    return (short_name or name)
+    return (short_name or name).decode('utf-8')
 
 def is_ignored(bufferp):
     buf_name = get_buf_name(bufferp)
@@ -109,11 +109,11 @@ def message_hook(data, bufferp, uber_empty, tagsn, is_displayed, is_highlighted,
     log('passed all checks')
 
     if is_pm:
-        title = 'Private message from {}'.format(prefix)
+        title = 'Private message from {}'.format(prefix.decode('utf-8'))
     else:
-        title = 'Message on {} from {}'.format(get_buf_name(bufferp), prefix)
+        title = 'Message on {} from {}'.format(get_buf_name(bufferp), prefix.decode('utf-8'))
 
-    send_push(title=title, message=message)
+    send_push(title=title, message=message.decode('utf-8'))
 
     return w.WEECHAT_RC_OK
 
@@ -133,7 +133,7 @@ def encrypt(data):
     clean_data = data
     if type(clean_data) != 'str':
         clean_data = str(data)
-    encrypted_data = fernet.encrypt(bytes(clean_data, 'utf-8'))
+    encrypted_data = fernet.encrypt(clean_data)
     return base64.b64encode(encrypted_data)
 
 def send_push(title, message):
